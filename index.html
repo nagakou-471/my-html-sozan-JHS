@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arduino ブザーメロディメーカー</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#172033;background:#f1f5fa;--lane-label:60px;--beat-px:64px}
+*{box-sizing:border-box}body{margin:0;padding:12px}main{max-width:1500px;margin:auto}header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}h1{font-size:clamp(1.3rem,2.5vw,1.8rem);margin:0}header p{margin:3px 0 0;color:#64748b;font-size:.88rem}.actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.panel{background:#fff;border:1px solid #dce5ef;border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:0 3px 12px #15243a08}h2{font-size:1rem;margin:0 0 9px}button,input,select,textarea{font:inherit;border:1px solid #cbd5e1;border-radius:8px;padding:7px 9px;background:#fff;color:inherit}button{cursor:pointer;font-weight:650;white-space:nowrap}button:hover{filter:brightness(.97)}button.primary{background:#1769e0;color:#fff;border-color:#1769e0}button:disabled{opacity:.45;cursor:not-allowed}label{display:flex;flex-direction:column;gap:4px;font-size:.82rem;font-weight:650}input[type=number]{width:100%}.toolbar{display:flex;align-items:end;gap:9px;flex-wrap:wrap}.toolbar label{min-width:115px}.toolbar .wide{min-width:180px}.instruction{margin:8px 0 0;color:#334155;font-size:.88rem;line-height:1.5}.hint{font-size:.8rem;color:#64748b;margin:7px 0 0;line-height:1.5}.status{font-size:.84rem;color:#1769a9;min-height:1.15em;margin:6px 0 0}.sound-tools{display:flex;gap:7px;align-items:end;flex-wrap:wrap;margin-top:10px}.sound-tools label{min-width:125px}.sound-palette{display:flex;gap:5px;flex-wrap:wrap;align-items:center}.sound-palette button{min-width:43px;padding:6px 8px;font-size:.85rem}.sound-palette button.active{background:#d9edff;border-color:#2681cf;color:#104b7a;box-shadow:inset 0 0 0 1px #2681cf}.tool-label{font-size:.8rem;color:#64748b;font-weight:700;margin-right:2px}
+.timeline-wrap{overflow:auto;max-height:53vh;min-height:290px;border:1px solid #dbe4ef;border-radius:9px;background:#fff;overscroll-behavior:contain}.timeline{padding:8px;width:max-content;min-width:100%}.ruler,.trackrow{display:grid;grid-template-columns:var(--lane-label) var(--track-width);gap:6px}.ruler{font-size:.72rem;color:#64748b;margin-bottom:5px;position:sticky;top:0;background:#fff;z-index:5;padding-top:2px;padding-bottom:3px}.rulerlabel{display:flex;align-items:end;font-weight:700;position:sticky;left:0;background:#fff;z-index:6}.rulerline{position:relative;height:24px;border-bottom:1px solid #cbd5e1;background-image:linear-gradient(to right,#cbd5e1 1px,transparent 1px);background-size:var(--beat-px) 100%}.tick{position:absolute;bottom:0;transform:translateX(-50%);padding-left:3px;border-left:1px solid #bcc8d6;height:13px}.tick.bar{border-left:2px solid #8294aa;font-weight:800;color:#334155}.trackrow{margin-bottom:1px;align-items:stretch}.tracklabel{font-size:.72rem;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-weight:650;color:#475569;position:sticky;left:0;background:#f8fafc;z-index:2;border-right:1px solid #dce5ef}.tracklabel.current{background:#e0f2fe;color:#075985;font-weight:800}.track{position:relative;height:28px;width:var(--track-width);border-bottom:1px solid #e6edf5;background-color:#fbfdff;background-image:linear-gradient(to right,#e5ebf3 1px,transparent 1px);background-size:var(--beat-px) 100%;cursor:crosshair}.track.bargrid{background-image:linear-gradient(to right,#cbd5e1 1px,transparent 1px),linear-gradient(to right,#e5ebf3 1px,transparent 1px);background-size:calc(var(--beat-px)*4) 100%,var(--beat-px) 100%}.track.target{background-color:#f0f9ff;box-shadow:inset 0 0 0 1px #bae6fd}.note{position:absolute;top:2px;height:23px;min-width:8px;padding:1px 4px;border-radius:4px;background:#c9e6ff;border:1px solid #3183d7;color:#103b66;display:flex;align-items:center;justify-content:center;gap:3px;overflow:hidden;white-space:nowrap;font-size:.69rem;cursor:grab;user-select:none;touch-action:none;z-index:1}.note:active{cursor:grabbing}.note.selected{outline:2px solid #f59e0b;z-index:3}.note .resize{position:absolute;right:0;top:0;width:7px;height:100%;background:#1769e0;opacity:.55;cursor:ew-resize}.note .note-label{pointer-events:none;padding-right:3px}.note.selected .resize{opacity:1}.code-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}textarea{width:100%;min-height:220px;resize:vertical;font:12px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre}
+dialog{border:1px solid #cbd5e1;border-radius:14px;padding:0;width:min(560px,calc(100vw - 24px));max-height:88vh;box-shadow:0 20px 70px #0f172a40;color:#172033}dialog::backdrop{background:#0f172a66;backdrop-filter:blur(2px)}.dialog-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;background:#f8fafc;border-bottom:1px solid #e2e8f0}.dialog-head h2{margin:0;font-size:1.05rem}.dialog-body{padding:15px;display:grid;gap:12px}.dialog-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.dialog-foot{padding:12px 15px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid #e2e8f0;background:#f8fafc}.checkrow{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.88rem}.checkrow input{width:17px;height:17px}.muted{font-size:.8rem;color:#64748b;font-weight:400}.gear{position:relative;isolation:isolate;width:44px;height:44px;padding:0;border-radius:14px;font-size:1.35rem;color:#d9f3ff;border:1px solid #397ba4;background:radial-gradient(circle at 30% 20%,#315d87 0,#173858 44%,#0b1d34 100%);box-shadow:0 5px 13px #1536532b,inset 0 1px 0 #ffffff38;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}.gear::before{content:"";position:absolute;inset:4px;border-radius:10px;border:1px solid #8ed8ff35;z-index:-1}.gear::after{content:"";position:absolute;width:7px;height:7px;border-radius:50%;top:6px;right:7px;background:#7be0cc;box-shadow:0 0 8px #7be0cc80}.gear:hover{transform:translateY(-1px) rotate(18deg);border-color:#6bc1e8;box-shadow:0 7px 17px #1536533d,inset 0 1px 0 #ffffff55}.gear:active{transform:scale(.96) rotate(10deg)}.gear:focus-visible{outline:3px solid #80caff;outline-offset:3px}.history-controls{display:flex;gap:5px;align-items:center}.history-controls button{min-width:39px;padding:7px 9px}.note.multi-selected{background:#c8f4e7;border-color:#15956e;color:#065f46;outline:2px solid #34b88b;z-index:3}.note.selected-primary{outline:2px solid #f59e0b;z-index:4}.mode-help{background:#f8fafc;border:1px solid #e2e8f0;padding:9px;border-radius:8px;font-size:.82rem;color:#475569;line-height:1.5}
+@media(max-width:700px){body{padding:7px}.panel{padding:9px}.timeline-wrap{max-height:49vh}.ruler,.trackrow{grid-template-columns:50px var(--track-width)}:root{--lane-label:50px}.dialog-grid{grid-template-columns:1fr}.toolbar label{flex:1}.sound-palette button{min-width:38px;padding:6px}.note{font-size:.62rem}}
+</style>
+</head>
+<body>
+<main>
+<header>
+ <div><h1>Arduino ブザーメロディメーカー</h1><p>音符を置いて、伸ばして、クリックして細かく設定</p></div>
+ <div class="actions"><button class="primary" id="play">▶ 試聴</button><button id="stop">■ 停止</button><div class="history-controls" aria-label="編集履歴"><button id="undo" title="元に戻す（Ctrl+Z）" aria-label="元に戻す" disabled>↶</button><button id="redo" title="やり直し（Ctrl+Y）" aria-label="やり直し" disabled>↷</button></div><button class="gear" id="openSettings" title="曲全体・再生方法の設定" aria-label="詳細設定">⚙</button></div>
+</header>
+<section class="panel">
+ <div class="toolbar">
+  <label>クリックで置く音の長さ<select id="defaultBeats"><option value="0.25">1/4拍</option><option value="0.5">1/2拍</option><option value="0.75">3/4拍</option><option value="1" selected>1拍</option><option value="1.5">1.5拍</option><option value="2">2拍</option><option value="3">3拍</option><option value="4">4拍</option></select></label>
+  <div class="actions"><button id="remove" disabled>選択した音を削除</button><button id="clear">全消去</button></div>
+ </div>
+ <div class="sound-tools"><label>配置する音<select id="placePitch"></select></label><div class="sound-palette" aria-label="音のクイック選択"><span class="tool-label">音を選ぶ：</span><button type="button" data-pitch="C4">ド</button><button type="button" data-pitch="CS4">♯ド</button><button type="button" data-pitch="D4">レ</button><button type="button" data-pitch="DS4">♯レ</button><button type="button" data-pitch="E4">ミ</button><button type="button" data-pitch="F4">ファ</button><button type="button" data-pitch="FS4">♯ファ</button><button type="button" data-pitch="G4">ソ</button><button type="button" data-pitch="GS4">♯ソ</button><button type="button" data-pitch="A4">ラ</button><button type="button" data-pitch="AS4">♯ラ</button><button type="button" data-pitch="B4">シ</button><button type="button" data-pitch="C5">高いド</button></div></div>
+ <p class="instruction"><b>使い方：</b>出したい音を選び、その音程の行で置きたい位置をクリック。音符の右端をドラッグすると長さが変わり、音符を左右にドラッグすると位置が変わります。<b>音符を左クリックすると詳細設定、Shift+クリックで複数選択。Backspace / Ctrl+Xで削除、Ctrl+Zで戻す、Ctrl+Yでやり直し（Macは⌘キー）。音符と音符の空白は自動で休符になります。</p>
+</section>
+<section class="panel"><h2>メロディのタイムライン</h2><div class="timeline-wrap" id="timelineWrap"><div class="timeline" id="timeline"><div class="ruler"><div class="rulerlabel">音程</div><div class="rulerline" id="ruler"></div></div><div id="tracks"></div></div></div><p class="hint">C2〜B7を表示。数字は拍数で、太い線は4拍ごとです。音程行のクリックで音符を追加できます。音符は重ねて配置・移動できます。重なっている箇所は注意表示されます。</p><p class="status" id="status" aria-live="polite"></p></section>
+<section class="panel"><h2>生成された Arduino C++ コード</h2><p class="hint">再生方式・テンポ・個別設定はここに生成されるコードへ反映されます。</p><textarea id="code" spellcheck="false" aria-label="Arduino C++コード"></textarea><div class="code-actions"><button class="primary" id="copy">コードをコピー</button><button id="download">.ino として保存</button></div><p class="status" id="codeStatus" aria-live="polite"></p></section>
+</main>
+
+<dialog id="noteDialog" aria-labelledby="noteDialogTitle">
+ <div class="dialog-head"><h2 id="noteDialogTitle">音符の詳細設定</h2><button type="button" id="closeNote" aria-label="閉じる">✕</button></div>
+ <div class="dialog-body">
+  <div class="dialog-grid"><label>音程<select id="notePitch"></select></label><label>長さ（拍）<input id="noteBeats" type="number" min="0.25" max="64" step="0.25" value="1"></label><label>開始位置（拍）<input id="noteStart" type="number" min="0" max="256" step="0.25" value="0"></label><div><label class="checkrow"><input id="useNoteTempo" type="checkbox">この音だけテンポを変える</label><label style="margin-top:7px">個別テンポ（BPM）<input id="noteTempo" type="number" min="30" max="300" step="1" value="120" disabled></label></div></div>
+  <p class="hint">長さはタイムラインの右端を引き伸ばしても変更できます。個別テンポを使わない場合は曲全体のテンポが適用されます。</p><p class="status" id="noteStatus" aria-live="polite"></p>
+ </div>
+ <div class="dialog-foot"><button id="deleteFromDialog">音符を削除</button><div class="actions"><button id="cancelNote">キャンセル</button><button class="primary" id="saveNote">変更を反映</button></div></div>
+</dialog>
+
+<dialog id="settingsDialog" aria-labelledby="settingsTitle">
+ <div class="dialog-head"><h2 id="settingsTitle">詳細設定</h2><button type="button" id="closeSettings" aria-label="閉じる">✕</button></div>
+ <div class="dialog-body">
+  <div class="dialog-grid"><label>曲全体のテンポ（BPM）<input id="bpm" type="number" min="30" max="300" value="120"></label><label>ブザーピン<input id="buzzerPin" type="number" min="0" max="99" value="8"></label><label>ボタンピン<input id="buttonPin" type="number" min="0" max="99" value="2"></label><label>再生方法<select id="playMode"><option value="button-play">ボタンを押すとメロディを再生</option><option value="auto">電源を入れると自動再生</option><option value="next-note">押すたびに次の音へ進む</option><option value="hold-play">押している間だけ再生</option></select></label></div>
+  <label class="checkrow"><input id="repeatMelody" type="checkbox">メロディを繰り返す（対応する再生方法で有効）</label>
+  <div id="modeHelp" class="mode-help">ボタンを押すと、メロディを最初から最後まで1回再生します。</div>
+  <p class="hint">再生方法を変更すると、生成されるArduinoコードの動作も変わります。ボタンは指定ピンとGNDの間につなぎ、INPUT_PULLUPを使う想定です。</p>
+ </div>
+ <div class="dialog-foot"><span class="muted">変更は自動でコードへ反映されます。</span><button class="primary" id="doneSettings">完了</button></div>
+</dialog>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const PPB=64, STEP=.25, MAX_BEATS=256, MAX_HISTORY=100;
+const pitchNames=[]; const semitones=[['C',0],['CS',1],['D',2],['DS',3],['E',4],['F',5],['FS',6],['G',7],['GS',8],['A',9],['AS',10],['B',11]];
+for(let oct=2;oct<=7;oct++)for(const [name,semi] of semitones){const midi=12*(oct+1)+semi;pitchNames.push({name:name+oct,hz:Math.round(440*Math.pow(2,(midi-69)/12))});}
+const pitchMap=new Map(pitchNames.map(p=>[p.name,p.hz]));
+let notes=[],selectedId=null,selectedIds=new Set(),nextId=1,clipboardNotes=[],audioCtx=null,previewCtx=null,playToken=0,dragState=null,suppressClickUntil=0,playTimer=null,undoStack=[],redoStack=[];
+const snap=v=>Math.max(0,Math.min(MAX_BEATS,Math.round(Number(v)/STEP)*STEP));
+const snapDelta=v=>Math.round(Number(v)/STEP)*STEP;
+const globalBpm=()=>Math.min(300,Math.max(30,Number($('bpm').value)||120));
+const beatMs=()=>60000/globalBpm();
+const duration=()=>Number($('defaultBeats').value)||1;
+const getSelected=()=>notes.find(n=>n.id===selectedId)||notes.find(n=>selectedIds.has(n.id))||null;
+const maxEnd=()=>Math.max(16,...notes.map(n=>n.start+n.beats));
+const intervalsOverlap=(start,beats,other)=>Math.max(start,other.start)<Math.min(start+beats,other.start+other.beats)-1e-7;
+const canPlace=(start,beats,id=null)=>!notes.some(n=>n.id!==id&&intervalsOverlap(start,beats,n));
+const eventTempo=n=>n.tempo||globalBpm();
+const fmt=n=>Number(n.toFixed(2)).toString();
+function fillPitchSelect(select){for(const p of pitchNames){const o=document.createElement('option');o.value=p.name;o.textContent=`${p.name} (${p.hz} Hz)`;select.append(o);}}
+fillPitchSelect($('placePitch'));fillPitchSelect($('notePitch'));
+// 履歴は「音符データ」だけを保存する。選択状態や画面再描画は履歴の段数に数えない。
+function modelSnapshot(){return {notes:notes.map(n=>({...n})),nextId};}
+function sameModel(a,b){return JSON.stringify(a.notes)===JSON.stringify(b.notes)&&a.nextId===b.nextId;}
+function updateHistoryButtons(){
+ $('undo').disabled=undoStack.length===0;$('redo').disabled=redoStack.length===0;
+ $('undo').title=`元に戻す（Ctrl+Z）${undoStack.length?` · ${undoStack.length}段`:''}`;
+ $('redo').title=`やり直し（Ctrl+Y）${redoStack.length?` · ${redoStack.length}段`:''}`;
+}
+function recordHistory(before){
+ if(!before||sameModel(before,modelSnapshot()))return;
+ undoStack.push(before);
+ if(undoStack.length>MAX_HISTORY)undoStack.shift();
+ redoStack=[];updateHistoryButtons();
+}
+function reconcileSelection(){
+ const valid=new Set(notes.map(n=>n.id));
+ selectedIds=new Set([...selectedIds].filter(id=>valid.has(id)));
+ if(selectedId!==null&&!valid.has(selectedId))selectedId=null;
+ if(selectedId!==null)selectedIds.add(selectedId);
+ if(selectedId===null&&selectedIds.size)selectedId=[...selectedIds].at(-1);
+}
+function restoreModel(state){
+ notes=state.notes.map(n=>({...n}));nextId=state.nextId;reconcileSelection();
+ if($('noteDialog').open)$('noteDialog').close();
+ render();updateHistoryButtons();
+}
+function undo(){
+ if(!undoStack.length)return;
+ redoStack.push(modelSnapshot());const prev=undoStack.pop();restoreModel(prev);
+ $('status').textContent='ひとつ前の編集操作に戻しました。';updateHistoryButtons();
+}
+function redo(){
+ if(!redoStack.length)return;
+ undoStack.push(modelSnapshot());const next=redoStack.pop();restoreModel(next);
+ $('status').textContent='編集操作をやり直しました。';updateHistoryButtons();
+}
+function setPlacePitch(pitch){if(!pitchMap.has(pitch))return;$('placePitch').value=pitch;document.querySelectorAll('.sound-palette button').forEach(b=>b.classList.toggle('active',b.dataset.pitch===pitch));render();const row=document.querySelector(`.trackrow[data-pitch="${pitch}"]`);if(row){const wrap=$('timelineWrap'),wr=wrap.getBoundingClientRect(),rr=row.getBoundingClientRect();wrap.scrollTop=Math.max(0,wrap.scrollTop+rr.top-wr.top-(wrap.clientHeight-rr.height)/2);}}
+function syncEditorButtons(){const count=selectedIds.size;$('remove').disabled=count===0;$('remove').textContent=count>1?`選択した音を削除（${count}）`:'選択した音を削除';}
+function buildEvents(){const ordered=[...notes].sort((a,b)=>a.start-b.start),events=[];let cursor=0;for(const n of ordered){if(n.start>cursor+1e-7)events.push({id:null,pitch:'REST',start:cursor,beats:Number((n.start-cursor).toFixed(2)),tempo:0});events.push({...n});cursor=n.start+n.beats;}return events;}
+function shouldSuppressTimelineClick(ev){
+ if(!suppressClickUntil)return false;
+ if(performance.now()>suppressClickUntil){suppressClickUntil=0;return false;}
+ const target=ev.target;
+ if(target instanceof Element && target.closest('.timeline-wrap')){
+  suppressClickUntil=0;ev.preventDefault();ev.stopPropagation();return true;
+ }
+ return false;
+}
+function previewPitch(pitch){
+ const AC=window.AudioContext||window.webkitAudioContext;if(!AC||!pitchMap.has(pitch))return;
+ try{
+  if(!previewCtx||previewCtx.state==='closed')previewCtx=new AC();const ctx=previewCtx;
+  Promise.resolve(ctx.resume()).then(()=>{
+   const now=ctx.currentTime,osc=ctx.createOscillator(),gain=ctx.createGain();
+   osc.type='triangle';osc.frequency.setValueAtTime(pitchMap.get(pitch),now);
+   gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(.045,now+.008);gain.gain.setValueAtTime(.045,now+.055);gain.gain.exponentialRampToValueAtTime(.0001,now+.09);
+   osc.connect(gain);gain.connect(ctx.destination);osc.start(now);osc.stop(now+.095);
+  }).catch(()=>{});
+ }catch(e){}
+}
+function render(){
+ const wrap=$('timelineWrap'),oldLeft=wrap.scrollLeft,oldTop=wrap.scrollTop;const end=Math.max(16,Math.ceil(maxEnd()+2)),trackBeats=Math.min(MAX_BEATS,Math.max(16,end)),trackWidth=trackBeats*PPB;
+ $('timeline').style.setProperty('--track-width',trackWidth+'px');$('timeline').style.setProperty('--beat-px',PPB+'px');
+ const ruler=$('ruler');ruler.innerHTML='';ruler.style.width=trackWidth+'px';for(let i=0;i<=trackBeats;i++){const tick=document.createElement('span');tick.className='tick'+(i%4===0?' bar':'');tick.style.left=(i*PPB)+'px';tick.textContent=String(i);ruler.append(tick);}
+ $('tracks').innerHTML='';const activePitch=$('placePitch').value;
+ for(const p of [...pitchNames].reverse()){
+  const row=document.createElement('div');row.className='trackrow';row.dataset.pitch=p.name;
+  const label=document.createElement('div');label.className='tracklabel'+(p.name===activePitch?' current':'');label.textContent=p.name;
+  const track=document.createElement('div');track.className='track bargrid'+(p.name===activePitch?' target':'');track.dataset.pitch=p.name;track.dataset.end=trackBeats;track.style.width=trackWidth+'px';
+  for(const n of notes){if(n.pitch!==p.name)continue;const el=document.createElement('div');el.className='note'+(selectedIds.has(n.id)?' selected':'')+(selectedIds.size>1&&selectedIds.has(n.id)?' multi-selected':'')+(n.id===selectedId?' selected-primary':'');el.dataset.noteId=String(n.id);el.style.left=(n.start*PPB)+'px';el.style.width=Math.max(8,n.beats*PPB)+'px';el.title=`${n.pitch} / ${fmt(n.beats)}拍 / 開始 ${fmt(n.start)}拍${n.tempo?' / 個別 '+n.tempo+' BPM':''}`;el.innerHTML=`<span class="note-label">${n.pitch} · ${fmt(n.beats)}</span><i class="resize" aria-hidden="true"></i>`;
+   el.addEventListener('pointerdown',ev=>beginDrag(ev,n.id,track,el));el.addEventListener('click',ev=>{
+    ev.stopPropagation();if(shouldSuppressTimelineClick(ev))return;if(ev.target.closest('.resize'))return;
+    if(ev.shiftKey){if(selectedIds.has(n.id))selectedIds.delete(n.id);else selectedIds.add(n.id);selectedId=selectedIds.has(n.id)?n.id:(selectedIds.size?[...selectedIds].at(-1):null);render();syncEditorButtons();$('status').textContent=selectedIds.size?`${selectedIds.size}個の音符を選択中。Backspace / Ctrl+X で削除できます。`:'選択を解除しました。';return;}
+    selectedIds=new Set([n.id]);selectedId=n.id;render();openNoteDialog(n.id);
+   });track.append(el);
+  }
+  track.addEventListener('click',ev=>{
+   if(shouldSuppressTimelineClick(ev))return;
+   if(ev.target.closest('.note'))return;const rect=track.getBoundingClientRect(),x=ev.clientX-rect.left;const start=snap(x/PPB),len=duration(),pitch=track.dataset.pitch;
+   $('placePitch').value=pitch;document.querySelectorAll('.sound-palette button').forEach(b=>b.classList.toggle('active',b.dataset.pitch===pitch));
+   if(start+len>MAX_BEATS){$('status').textContent='タイムラインの上限を超えています。';return;}
+   const before=modelSnapshot();const n={id:nextId++,pitch,start,beats:len,tempo:0};notes.push(n);notes.sort((a,b)=>a.start-b.start);selectedId=n.id;selectedIds=new Set([n.id]);recordHistory(before);render();previewPitch(pitch);$('status').textContent=`${n.pitch}を${fmt(n.start)}拍目に置きました。`;
+  });
+  row.append(label,track);$('tracks').append(row);
+ }
+ syncEditorButtons();updateCode();updateHistoryButtons();wrap.scrollLeft=oldLeft;wrap.scrollTop=oldTop;const collisions=[];const ordered=[...notes].sort((a,b)=>a.start-b.start);for(let i=0;i<ordered.length;i++)for(let j=i+1;j<ordered.length;j++){if(intervalsOverlap(ordered[i].start,ordered[i].beats,ordered[j]))collisions.push([ordered[i],ordered[j]]);}if(collisions.length)$('status').textContent=`注意：${collisions.length}組の音符が重なっています（例：${collisions[0][0].pitch} と ${collisions[0][1].pitch}）。重なりは編集できます。`;else if($('status').textContent.startsWith('注意：'))$('status').textContent='';
+}
+function beginDrag(ev,id,track,el){
+ if(ev.button!==0||ev.shiftKey)return;ev.stopPropagation();const note=notes.find(n=>n.id===id);if(!note)return;
+ const before=modelSnapshot();if(!selectedIds.has(id)){selectedIds=new Set([id]);selectedId=id;}else selectedId=id;
+ document.querySelectorAll('.note').forEach(e=>{const nid=Number(e.dataset.noteId);e.classList.toggle('selected',selectedIds.has(nid));e.classList.toggle('multi-selected',selectedIds.size>1&&selectedIds.has(nid));e.classList.toggle('selected-primary',nid===selectedId);});syncEditorButtons();
+ const resize=ev.target.classList.contains('resize');const groupIds=resize?[id]:(selectedIds.has(id)?[...selectedIds]:[id]);
+ const originals=groupIds.map(gid=>{const n=notes.find(v=>v.id===gid);return n?{id:n.id,start:n.start,beats:n.beats}:null;}).filter(Boolean);
+ dragState={id,startX:ev.clientX,resize,el,track,moved:false,changed:false,before,originals,groupIds};
+ const move=e=>{
+  const st=dragState;if(!st)return;const dx=e.clientX-st.startX;if(Math.abs(dx)>3)st.moved=true;if(!st.moved)return;
+  const delta=snapDelta(dx/PPB);let candidates=[];
+  if(st.resize){const o=st.originals[0];const newBeats=Math.max(STEP,Math.min(MAX_BEATS-o.start,snap(o.beats+dx/PPB)));candidates=[{id:o.id,start:o.start,beats:newBeats}];}
+  else candidates=st.originals.map(o=>({id:o.id,start:Math.max(0,Math.min(MAX_BEATS-o.beats,o.start+delta)),beats:o.beats}));
+  let valid=candidates.every(c=>c.start+c.beats<=MAX_BEATS);
+  if(valid){for(const c of candidates){const n=notes.find(v=>v.id===c.id);if(n&&(Math.abs(n.start-c.start)>1e-7||Math.abs(n.beats-c.beats)>1e-7))st.changed=true;if(n){n.start=c.start;n.beats=c.beats;const node=document.querySelector(`.note[data-note-id="${n.id}"]`);if(node){node.style.left=(n.start*PPB)+'px';node.style.width=Math.max(8,n.beats*PPB)+'px';node.title=`${n.pitch} / ${fmt(n.beats)}拍 / 開始 ${fmt(n.start)}拍${n.tempo?' / 個別 '+n.tempo+' BPM':''}`;const label=node.querySelector('.note-label');if(label)label.textContent=`${n.pitch} · ${fmt(n.beats)}`;}}}
+   $('status').textContent=st.resize?`長さ：${fmt(candidates[0].beats)}拍`:candidates.length>1?`${candidates.length}個の音符を移動中`:`開始位置：${fmt(candidates[0].start)}拍`;updateCode();
+  }else $('status').textContent='タイムラインの上限を超えています。';
+ };
+ const up=()=>{if(!dragState)return;const st=dragState;dragState=null;window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);window.removeEventListener('pointercancel',up);if(st.moved){suppressClickUntil=performance.now()+100;if(st.changed){recordHistory(st.before);notes.sort((a,b)=>a.start-b.start);render();$('status').textContent='音符の位置・長さを更新しました。';}else if(st.resize){$('status').textContent='音符の長さは変わりませんでした。';}}};
+ window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up);
+}
+function openNoteDialog(id){const n=notes.find(x=>x.id===id);if(!n)return;selectedId=id;selectedIds=new Set([id]);$('notePitch').value=n.pitch;$('noteStart').value=n.start;$('noteBeats').value=n.beats;$('useNoteTempo').checked=!!n.tempo;$('noteTempo').value=n.tempo||globalBpm();$('noteTempo').disabled=!n.tempo;$('noteStatus').textContent='';syncEditorButtons();if(!$('noteDialog').open)$('noteDialog').showModal();}
+$('useNoteTempo').addEventListener('change',()=>{$('noteTempo').disabled=!$('useNoteTempo').checked;if($('useNoteTempo').checked&&!Number($('noteTempo').value))$('noteTempo').value=globalBpm();});
+$('saveNote').onclick=()=>{const n=getSelected();if(!n)return;const pitch=$('notePitch').value,start=snap($('noteStart').value),beats=Math.max(STEP,Math.min(64,snap($('noteBeats').value)));const tempo=$('useNoteTempo').checked?Math.min(300,Math.max(30,Math.round(Number($('noteTempo').value)||globalBpm()))):0;if(start+beats>MAX_BEATS){$('noteStatus').textContent='開始位置がタイムラインの上限を超えています。';return;}const before=modelSnapshot();Object.assign(n,{pitch,start,beats,tempo});notes.sort((a,b)=>a.start-b.start);recordHistory(before);$('noteDialog').close();render();$('status').textContent='音符の詳細設定を反映しました。';};
+function deleteSelected(){if(!selectedIds.size)return;const before=modelSnapshot(),ids=new Set(selectedIds);notes=notes.filter(n=>!ids.has(n.id));recordHistory(before);selectedId=null;selectedIds.clear();if($('noteDialog').open)$('noteDialog').close();render();$('status').textContent=`${ids.size}個の音符を削除しました。`;}
+$('deleteFromDialog').onclick=deleteSelected;$('remove').onclick=deleteSelected;$('closeNote').onclick=$('cancelNote').onclick=()=>{$('noteDialog').close();};
+$('clear').onclick=()=>{if(!notes.length)return;const before=modelSnapshot();notes=[];recordHistory(before);selectedId=null;selectedIds.clear();render();$('status').textContent='すべての音符を消去しました。';};
+$('undo').onclick=undo;$('redo').onclick=redo;
+$('placePitch').addEventListener('change',()=>setPlacePitch($('placePitch').value));document.querySelectorAll('.sound-palette button').forEach(b=>b.addEventListener('click',()=>setPlacePitch(b.dataset.pitch)));
+window.addEventListener('keydown',ev=>{
+ const target=ev.target;
+ const mod=ev.ctrlKey||ev.metaKey,key=ev.key.toLowerCase();
+ const editingCode=target instanceof Element&&!!target.closest('#code');
+ const insideSettings=target instanceof Element&&!!target.closest('#settingsDialog');
+ const typing=target instanceof HTMLElement&&(target.isContentEditable||target.matches('input,textarea,select,[contenteditable="true"]'));
+ // Ctrl/Cmd+Z/Y は音符編集の履歴。生成コード欄では通常のテキスト編集を優先。
+ if(mod&&!editingCode&&!insideSettings&&key==='z'){ev.preventDefault();if(ev.shiftKey)redo();else undo();return;}
+ if(mod&&!editingCode&&!insideSettings&&key==='y'){ev.preventDefault();redo();return;}
+ if(typing||insideSettings)return;
+ if(mod&&key==='c'&&selectedIds.size){ev.preventDefault();clipboardNotes=notes.filter(n=>selectedIds.has(n.id)).map(n=>({...n}));$('status').textContent=`${clipboardNotes.length}個の音符をコピーしました。`;return;}
+ if(mod&&key==='v'&&clipboardNotes.length){ev.preventDefault();const before=modelSnapshot();const base=Math.min(...clipboardNotes.map(n=>n.start));const shift=Math.max(0,Math.ceil((maxEnd()+1-base)/STEP)*STEP);const copies=clipboardNotes.map(n=>({...n,id:nextId++,start:snap(Math.min(MAX_BEATS-n.beats,n.start+shift))}));notes.push(...copies);notes.sort((a,b)=>a.start-b.start);selectedIds=new Set(copies.map(n=>n.id));selectedId=copies.length?copies[copies.length-1].id:null;recordHistory(before);render();$('status').textContent=`${copies.length}個の音符を貼り付けました。重なりは許可されています。`;return;}
+ if((ev.key==='Backspace'||(mod&&key==='x'))&&selectedIds.size){ev.preventDefault();if(mod&&key==='x')clipboardNotes=notes.filter(n=>selectedIds.has(n.id)).map(n=>({...n}));deleteSelected();}
+});
+function updateModeHelp(){const messages={auto:'電源を入れるとメロディを再生します。「繰り返す」をオンにすると繰り返し再生します。', 'button-play':'ボタンを押すと、メロディを最初から最後まで再生します。繰り返しをオンにすると、ボタンを押している間は繰り返します。','next-note':'ボタンを押すたびに、タイムライン順の次の音（休符の区間を含む）へ進みます。最後まで行くと先頭へ戻ります。','hold-play':'ボタンを押している間、メロディを再生します。離すと現在の音を止めます。繰り返しをオンにすると、押している間にメロディを繰り返します。'};$('modeHelp').textContent=messages[$('playMode').value];}
+['bpm','buzzerPin','buttonPin','playMode','repeatMelody'].forEach(id=>$(id).addEventListener('input',()=>{updateCode();updateModeHelp();}));$('playMode').addEventListener('change',()=>{updateCode();updateModeHelp();});
+$('openSettings').onclick=()=>{$('settingsDialog').showModal();updateModeHelp();};$('closeSettings').onclick=$('doneSettings').onclick=()=>{$('settingsDialog').close();updateCode();};
+function updateCode(){
+ const pin=Math.max(0,Math.min(99,Math.round(Number($('buzzerPin').value)||0))),button=Math.max(0,Math.min(99,Math.round(Number($('buttonPin').value)||0))),bpmVal=globalBpm(),mode=$('playMode').value,repeat=$('repeatMelody').checked;
+ const events=buildEvents(),used=[...new Set(events.map(n=>n.pitch).filter(p=>p!=='REST'))],defs=used.map(name=>`#define ${name.padEnd(4,' ')} ${pitchMap.get(name)}`).join('\n');
+ const eventPitch=events.length?events.map(n=>n.pitch).join(', '):'REST';const eventBeats=events.length?events.map(n=>Number(n.beats).toFixed(2)).join(', '):'1.00';const eventTempos=events.length?events.map(n=>n.tempo||0).join(', '):'0';const count=events.length||1;
+ let modeCode='';
+ if(mode==='auto')modeCode=repeat?`void loop() {\n  playMelody();\n  delay(300);\n}`:`void loop() {\n  static bool played = false;\n  if (!played) {\n    playMelody();\n    played = true;\n  }\n}`;
+ else if(mode==='button-play')modeCode=repeat?`void loop() {\n  if (digitalRead(buttonPin) == LOW) {\n    while (digitalRead(buttonPin) == LOW) {\n      playMelody();\n      delay(100);\n    }\n  }\n}`:`void loop() {\n  if (digitalRead(buttonPin) == LOW) {\n    playMelody();\n    while (digitalRead(buttonPin) == LOW) delay(10);\n    delay(30);\n  }\n}`;
+ else if(mode==='next-note')modeCode=`void loop() {\n  static int nextEvent = 0;\n  if (digitalRead(buttonPin) == LOW) {\n    playEvent(nextEvent);\n    nextEvent = (nextEvent + 1) % totalEvents;\n    while (digitalRead(buttonPin) == LOW) delay(10);\n    delay(30);\n  }\n}`;
+ else modeCode=repeat?`void loop() {\n  if (digitalRead(buttonPin) == LOW) {\n    while (digitalRead(buttonPin) == LOW) {\n      if (!playMelody()) break;\n      delay(10);\n    }\n    noTone(buzzerPin);\n  }\n}`:`void loop() {\n  if (digitalRead(buttonPin) == LOW) {\n    playMelody();\n    while (digitalRead(buttonPin) == LOW) delay(10);\n    noTone(buzzerPin);\n    delay(30);\n  }\n}`;
+ $('code').value=`// Arduino ブザーメロディメーカーで生成
+const int buzzerPin = ${pin};
+const int buttonPin = ${button};
+const int GLOBAL_BPM = ${bpmVal};
+const bool REPEAT_MELODY = ${repeat?'true':'false'};
+const bool STOP_WHEN_RELEASED = ${mode==='hold-play'?'true':'false'};
+
+${defs}${defs?'\n':''}#define REST 0
+
+int melody[] = { ${eventPitch} };
+float beats[] = { ${eventBeats} };
+int noteBpm[] = { ${eventTempos} }; // 0なら曲全体のテンポを使う
+const int totalEvents = sizeof(melody) / sizeof(melody[0]);
+
+void setup() {
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(buttonPin, INPUT_PULLUP);
+}
+
+bool playEvent(int i) {
+  int tempo = noteBpm[i] > 0 ? noteBpm[i] : GLOBAL_BPM;
+  unsigned long durationMs = (unsigned long)(60000.0 / tempo * beats[i]);
+  if (melody[i] == REST) noTone(buzzerPin);
+  else tone(buzzerPin, melody[i]);
+  unsigned long started = millis();
+  while (millis() - started < durationMs) {
+    if (STOP_WHEN_RELEASED && digitalRead(buttonPin) == HIGH) {
+      noTone(buzzerPin);
+      return false;
+    }
+    delay(1);
+  }
+  noTone(buzzerPin);
+  return true;
+}
+
+bool playMelody() {
+  for (int i = 0; i < totalEvents; i++) {
+    if (!playEvent(i)) return false;
+  }
+  return true;
+}
+
+${modeCode}
+`;
+}
+async function stopPlayback(){playToken++;if(playTimer!==null){clearTimeout(playTimer);playTimer=null;}if(audioCtx){try{await audioCtx.close();}catch(e){}audioCtx=null;}}
+$('stop').onclick=async()=>{await stopPlayback();$('status').textContent='試聴を停止しました。';};
+$('play').onclick=async()=>{await stopPlayback();if(!notes.length){$('status').textContent='まだ音符がありません。音程の行をクリックして音符を追加してください。';return;}if(!window.AudioContext&&!window.webkitAudioContext){$('status').textContent='このブラウザでは試聴機能を使えません。';return;}playToken++;const token=playToken;audioCtx=new(window.AudioContext||window.webkitAudioContext)();const ctx=audioCtx;try{await ctx.resume();}catch(e){}const events=buildEvents(),origin=ctx.currentTime+.05;let elapsed=0;for(const n of events){const ms=n.beats*60000/(n.tempo||globalBpm()),start=origin+elapsed/1000;if(n.pitch!=='REST'){const osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='square';osc.frequency.value=pitchMap.get(n.pitch)||440;gain.gain.setValueAtTime(.055,start);gain.gain.setValueAtTime(.055,Math.max(start+.001,start+ms/1000-.015));gain.gain.linearRampToValueAtTime(0,start+ms/1000);osc.connect(gain);gain.connect(ctx.destination);osc.start(start);osc.stop(start+ms/1000);}elapsed+=ms;}$('status').textContent='試聴中…';playTimer=setTimeout(async()=>{if(token===playToken){$('status').textContent='試聴が終わりました。';await stopPlayback();}},elapsed+250);};
+$('copy').onclick=async()=>{try{await navigator.clipboard.writeText($('code').value);$('codeStatus').textContent='コードをコピーしました。';}catch(e){$('code').select();const ok=document.execCommand('copy');$('codeStatus').textContent=ok?'コードをコピーしました。':'コードが選択されました。Ctrl+Cでコピーしてください。';}};
+$('download').onclick=()=>{const blob=new Blob([$('code').value],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='buzzer_melody.ino';document.body.append(a);a.click();a.remove();URL.revokeObjectURL(url);$('codeStatus').textContent='.inoファイルを保存しました。';};
+$('bpm').addEventListener('input',()=>{if($('noteDialog').open&&!$('useNoteTempo').checked)$('noteTempo').value=globalBpm();});
+render();setPlacePitch('C4');updateModeHelp();
+</script>
+</body>
+</html>
